@@ -1,0 +1,116 @@
+unit FoodUnit;
+
+interface
+
+uses
+  SysUtils,     // IntToStr
+  ComCtrls,     // TStatusBar
+  Math,         // Min, Max
+  Classes,      // TList
+  Graphics,     // TCanvas
+  Types,        // TPoint
+  Forms,        // TApplication
+  StdCtrls,     // TListBox
+
+  BaseUnit;     // Base object
+
+const
+  FoodStartFood = 20; // Amount of food to start with
+
+type TFood = class(TBaseObject)
+  private
+
+    Bitmap  : TBitmap;      // Loaded queen bitmap
+  public
+
+    //---  constructors / destructors and such ---------------------------------
+
+    constructor Create
+                  (pPos   : TPoint;   // Position in the world
+                   rWorld : TRect;    // World Area
+                   pWorld : TList;    // The world to act in
+                   pDebug : TListBox  // Debug
+                  ); override;
+
+    //--- General procedures ---------------------------------------------------
+
+    // Act in the world
+
+    procedure   Act (bDebug : boolean); override;
+
+    //--- Drawing routines -----------------------------------------------------
+
+    procedure   Draw (Can : TCanvas); override;
+  end;
+
+implementation
+
+//------------------------------------------------------------------------------
+// Constructor
+//
+constructor TFood.Create
+                  (pPos   : TPoint;   // Position in the world
+                   rWorld : TRect;    // World Area
+                   pWorld : TList;    // The world to act in
+                   pDebug : TListBox  // Debug
+                  ); 
+begin
+  Self.Name := 'F';
+
+  inherited;
+
+  // Start with a bigger food load
+
+  Self.Food  := FoodStartFood;
+
+  // Load the bitmap to draw
+
+  Bitmap := TBitmap.Create;
+  Bitmap.LoadFromFile(ExtractFilePath(Application.ExeName) + 'Food.bmp');
+
+  Self.Debug.Items.Add(InqInfo('Created'));
+end;
+//------------------------------------------------------------------------------
+// Act
+//
+procedure TFood.Act(bDebug : boolean);
+begin
+  inherited;
+
+  // Handle the status
+
+  if Self.Food < 0.5 then
+    begin
+      Self.State := stDead;
+
+      if DebugOn then
+        Self.Debug.Items.Add(InqInfo('Eaten'));
+    end;
+end;
+//------------------------------------------------------------------------------
+// Draw
+//
+procedure TFood.Draw(Can : TCanvas);
+var
+  wdt : integer;
+  dr,sr : TRect;
+begin
+
+  // Calc how big the food should be
+
+  wdt := round(Max(Self.Food, 6.0));
+
+  // Draw the symbol in the middle (Bitmap is 16x16x256 color)
+
+  dr.Left   := pos.X - wdt;
+  dr.Right  := pos.X + wdt;
+  dr.Top    := pos.Y - wdt;
+  dr.Bottom := pos.Y + wdt;
+
+  sr.Left   := 0;
+  sr.Right  := Bitmap.Width;
+  sr.Top    := 0;
+  sr.Bottom := Bitmap.Height;
+
+  Can.CopyRect(dr,Bitmap.Canvas,sr);end;
+end.
